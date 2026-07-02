@@ -1,0 +1,13 @@
+{
+	"version": "0.9.4",
+
+	"notes": "Optimized iframe layout rendering and responsive load-timer telemetry.",
+
+	"platforms": {
+		"windows-x86_64": {
+			"signature": "PASTE_THE_NEW_V0.9.4_SIGNATURE_STRING_FROM_GITHUB_HERE",
+
+			"url": "https://github.com/57471C/speedDF/releases/download/v0.9.4/speeddf-x64.msi.zip"
+		}
+	}
+}
