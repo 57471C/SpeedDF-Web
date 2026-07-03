@@ -1,0 +1,9 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "speeddf-web",
+	"compatibility_date": "2026-07-03",
+	"assets": {
+		"directory": ".svelte-kit/output/client",
+		"binding": "ASSETS"
+	}
+}
