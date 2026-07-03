@@ -11,10 +11,20 @@ interface GitHubRelease {
 	assets: GitHubAsset[];
 }
 
+export const OPTIONS: RequestHandler = async () => {
+	return new Response(null, {
+		headers: {
+			"Access-Control-Allow-Origin": "*",
+			"Access-Control-Allow-Methods": "GET, OPTIONS",
+			"Access-Control-Allow-Headers": "Content-Type, User-Agent",
+		},
+	});
+};
+
 export const GET: RequestHandler = async ({ fetch, setHeaders }) => {
 	// Apply CORS clearance for all responses (including errors)
 	setHeaders({
-		"access-control-allow-origin": "*",
+		"Access-Control-Allow-Origin": "*",
 	});
 
 	try {
@@ -51,7 +61,11 @@ export const GET: RequestHandler = async ({ fetch, setHeaders }) => {
 		setHeaders({
 			"cache-control": "public, max-age=300", // Cache at edge for 5 minutes to keep it snappy
 		});
-		return json(updaterData);
+		return json(updaterData, {
+			headers: {
+				"content-type": "application/json",
+			},
+		});
 	} catch (err: unknown) {
 		const message = err instanceof Error ? err.message : "Unknown error occurred";
 		return json({ error: message }, { status: 500 });
