@@ -8,3 +8,4 @@ export default defineConfig({
 		sveltekit(), // Remove the compilerOptions for now to see if it fixes the adapter detection
 	],
 });
+//
