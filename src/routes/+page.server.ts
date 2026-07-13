@@ -30,16 +30,25 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 		const release = (await res.json()) as GitHubRelease;
 		const assets = release.assets || [];
 
-		// Helper to find download URL, with a safer fallback
-		const findDownloadUrl = (extension: string): string => {
-			const asset = assets.find((a) => a.name.endsWith(extension));
-			return asset?.browser_download_url || RELEASES_URL;
-		};
-
 		// Exact match extensions from your Tauri GitHub action outputs
-		const winDownload = findDownloadUrl(".exe");
-		const macDownload = findDownloadUrl(".dmg");
-		const linuxDownload = findDownloadUrl(".AppImage");
+		let winDownload = RELEASES_URL;
+		let macDownload = RELEASES_URL;
+		let linuxDownload = RELEASES_URL;
+		let found = 0;
+
+		for (const asset of assets) {
+			if (winDownload === RELEASES_URL && asset.name.endsWith(".exe")) {
+				winDownload = asset.browser_download_url;
+				found++;
+			} else if (macDownload === RELEASES_URL && asset.name.endsWith(".dmg")) {
+				macDownload = asset.browser_download_url;
+				found++;
+			} else if (linuxDownload === RELEASES_URL && asset.name.endsWith(".AppImage")) {
+				linuxDownload = asset.browser_download_url;
+				found++;
+			}
+			if (found === 3) break;
+		}
 		const version = release.tag_name || "v0.0.0";
 
 		return { winDownload, macDownload, linuxDownload, version };
