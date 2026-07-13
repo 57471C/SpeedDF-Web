@@ -1,15 +1,6 @@
 import { json } from "@sveltejs/kit";
+import type { GitHubRelease } from "$lib/types";
 import type { RequestHandler } from "./$types";
-
-interface GitHubAsset {
-	name: string;
-	browser_download_url: string;
-}
-
-interface GitHubRelease {
-	tag_name: string;
-	assets: GitHubAsset[];
-}
 
 // Cache the resolved asset URL for 5 minutes to avoid hitting the GitHub API rate limit
 // and making two sequential HTTP requests per function invocation.
