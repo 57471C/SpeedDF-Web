@@ -11,6 +11,11 @@ interface GitHubRelease {
 	assets: GitHubAsset[];
 }
 
+// Cache the resolved asset URL for 5 minutes to avoid hitting the GitHub API rate limit
+// and making two sequential HTTP requests per function invocation.
+let cachedAssetUrl: { url: string; expiresAt: number } | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export const OPTIONS: RequestHandler = async () => {
 	return new Response(null, {
 		headers: {
@@ -28,29 +33,41 @@ export const GET: RequestHandler = async ({ fetch, setHeaders }) => {
 	});
 
 	try {
-		// 1. Query the GitHub API for your app's absolute latest release
-		const response = await fetch("https://api.github.com/repos/57471C/speedDF/releases/latest", {
-			headers: { "User-Agent": "speeddf-web-updater" },
-		});
+		let downloadUrl: string;
 
-		if (!response.ok) {
-			return json({ error: "Failed to fetch release from GitHub" }, { status: 500 });
-		}
+		if (cachedAssetUrl && Date.now() < cachedAssetUrl.expiresAt) {
+			downloadUrl = cachedAssetUrl.url;
+		} else {
+			// 1. Query the GitHub API for your app's absolute latest release
+			const response = await fetch("https://api.github.com/repos/57471C/speedDF/releases/latest", {
+				headers: { "User-Agent": "speeddf-web-updater" },
+			});
 
-		const release = (await response.json()) as GitHubRelease;
+			if (!response.ok) {
+				return json({ error: "Failed to fetch release from GitHub" }, { status: 500 });
+			}
 
-		// 2. Find the latest.json asset that Tauri uploaded to the release
-		const latestJsonAsset = release.assets?.find((asset) => asset.name === "latest.json");
+			const release = (await response.json()) as GitHubRelease;
 
-		if (!latestJsonAsset) {
-			return json(
-				{ error: "latest.json file not found in the latest GitHub release assets" },
-				{ status: 404 },
-			);
+			// 2. Find the latest.json asset that Tauri uploaded to the release
+			const latestJsonAsset = release.assets?.find((asset) => asset.name === "latest.json");
+
+			if (!latestJsonAsset) {
+				return json(
+					{ error: "latest.json file not found in the latest GitHub release assets" },
+					{ status: 404 },
+				);
+			}
+
+			downloadUrl = latestJsonAsset.browser_download_url;
+			cachedAssetUrl = {
+				url: downloadUrl,
+				expiresAt: Date.now() + CACHE_TTL_MS,
+			};
 		}
 
 		// 3. Grab the live content of that file straight from GitHub's CDN
-		const assetResponse = await fetch(latestJsonAsset.browser_download_url);
+		const assetResponse = await fetch(downloadUrl);
 		if (!assetResponse.ok) {
 			return json({ error: "Failed to download asset data payload" }, { status: 500 });
 		}
