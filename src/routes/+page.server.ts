@@ -1,15 +1,5 @@
+import type { GitHubRelease } from "$lib/types";
 import type { PageServerLoad } from "./$types";
-
-// Define interfaces for the GitHub API response to avoid using `any`
-interface GitHubAsset {
-	name: string;
-	browser_download_url: string;
-}
-
-interface GitHubRelease {
-	tag_name: string;
-	assets: GitHubAsset[];
-}
 
 const RELEASES_URL = "https://github.com/57471C/speedDF/releases";
 
