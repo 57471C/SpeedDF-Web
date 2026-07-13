@@ -16,21 +16,47 @@ interface GitHubRelease {
 let cachedAssetUrl: { url: string; expiresAt: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-export const OPTIONS: RequestHandler = async () => {
-	return new Response(null, {
-		headers: {
-			"Access-Control-Allow-Origin": "*",
-			"Access-Control-Allow-Methods": "GET, OPTIONS",
-			"Access-Control-Allow-Headers": "Content-Type, User-Agent",
-		},
-	});
+function getAllowedOrigin(origin: string | null): string | null {
+	if (!origin) return null;
+	// Allow standard Tauri and local development origins
+	if (
+		origin === "tauri://localhost" ||
+		origin === "https://tauri.localhost" ||
+		origin === "http://tauri.localhost" ||
+		origin === "app://localhost" ||
+		origin.startsWith("http://localhost:") ||
+		origin.startsWith("https://localhost:")
+	) {
+		return origin;
+	}
+	return null;
+}
+
+export const OPTIONS: RequestHandler = async ({ request }) => {
+	const origin = request.headers.get("origin");
+	const allowedOrigin = getAllowedOrigin(origin);
+
+	const headers: Record<string, string> = {
+		"Access-Control-Allow-Methods": "GET, OPTIONS",
+		"Access-Control-Allow-Headers": "Content-Type, User-Agent",
+	};
+
+	if (allowedOrigin) {
+		headers["Access-Control-Allow-Origin"] = allowedOrigin;
+	}
+
+	return new Response(null, { headers });
 };
 
-export const GET: RequestHandler = async ({ fetch, setHeaders }) => {
-	// Apply CORS clearance for all responses (including errors)
-	setHeaders({
-		"Access-Control-Allow-Origin": "*",
-	});
+export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
+	const origin = request.headers.get("origin");
+	const allowedOrigin = getAllowedOrigin(origin);
+
+	if (allowedOrigin) {
+		setHeaders({
+			"Access-Control-Allow-Origin": allowedOrigin,
+		});
+	}
 
 	try {
 		let downloadUrl: string;
