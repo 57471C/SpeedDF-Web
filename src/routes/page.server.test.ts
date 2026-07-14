@@ -79,4 +79,69 @@ describe("load", () => {
 			version: "latest"
 		});
 	});
+
+	it("should fallback to safe values when API returns non-ok response", async () => {
+		const mockFetch = vi.fn().mockResolvedValue({
+			ok: false,
+			status: 403,
+			statusText: "Forbidden"
+		});
+		const mockSetHeaders = vi.fn();
+
+		const result = await load({
+			fetch: mockFetch,
+			setHeaders: mockSetHeaders,
+		} as any);
+
+		expect(result).toEqual({
+			winDownload: RELEASES_URL,
+			macDownload: RELEASES_URL,
+			linuxDownload: RELEASES_URL,
+			version: "latest"
+		});
+	});
+
+	it("should handle missing tag_name correctly", async () => {
+		const mockFetch = vi.fn().mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				assets: []
+			})
+		});
+		const mockSetHeaders = vi.fn();
+
+		const result = await load({
+			fetch: mockFetch,
+			setHeaders: mockSetHeaders,
+		} as any);
+
+		expect(result).toEqual({
+			winDownload: RELEASES_URL,
+			macDownload: RELEASES_URL,
+			linuxDownload: RELEASES_URL,
+			version: "v0.0.0"
+		});
+	});
+
+	it("should handle undefined assets correctly", async () => {
+		const mockFetch = vi.fn().mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				tag_name: "v1.0.0"
+			})
+		});
+		const mockSetHeaders = vi.fn();
+
+		const result = await load({
+			fetch: mockFetch,
+			setHeaders: mockSetHeaders,
+		} as any);
+
+		expect(result).toEqual({
+			winDownload: RELEASES_URL,
+			macDownload: RELEASES_URL,
+			linuxDownload: RELEASES_URL,
+			version: "v1.0.0"
+		});
+	});
 });
