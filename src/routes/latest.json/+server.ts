@@ -101,7 +101,7 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 			},
 		});
 	} catch (err: unknown) {
-		const message = err instanceof Error ? err.message : "Unknown error occurred";
-		return json({ error: message }, { status: 500 });
+		console.error("Error handling release fetch:", err);
+		return json({ error: "Internal Server Error" }, { status: 500 });
 	}
 };
