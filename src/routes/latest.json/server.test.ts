@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./+server";
+import type { RequestEvent } from "./$types";
 
 describe("GET /latest.json", () => {
 	let currentTime = new Date("2024-01-01T00:00:00Z").getTime();
@@ -29,10 +30,10 @@ describe("GET /latest.json", () => {
 		};
 
 		const response = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 
 		expect(mockFetch).toHaveBeenCalledWith(
 			"https://api.github.com/repos/57471C/speedDF/releases/latest",
@@ -59,24 +60,29 @@ describe("GET /latest.json", () => {
 		const mockRequest = { headers: { get: vi.fn().mockReturnValue(null) } };
 
 		const response = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 
 		expect(response.status).toBe(404);
 		const data = await response.json();
-		expect(data).toEqual({ error: "latest.json file not found in the latest GitHub release assets" });
+		expect(data).toEqual({
+			error: "latest.json file not found in the latest GitHub release assets",
+		});
 	});
 
 	it("should return 500 when asset download fails", async () => {
-		const mockFetch = vi.fn().mockImplementation((url) => {
+		const mockFetch = vi.fn().mockImplementation((url: string) => {
 			if (url === "https://api.github.com/repos/57471C/speedDF/releases/latest") {
 				return Promise.resolve({
 					ok: true,
-					json: () => Promise.resolve({
-						assets: [{ name: "latest.json", browser_download_url: "https://example.com/latest.json" }],
-					}),
+					json: () =>
+						Promise.resolve({
+							assets: [
+								{ name: "latest.json", browser_download_url: "https://example.com/latest.json" },
+							],
+						}),
 				});
 			} else if (url === "https://example.com/latest.json") {
 				return Promise.resolve({ ok: false });
@@ -88,10 +94,10 @@ describe("GET /latest.json", () => {
 		const mockRequest = { headers: { get: vi.fn().mockReturnValue(null) } };
 
 		const response = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 
 		expect(response.status).toBe(500);
 		const data = await response.json();
@@ -100,13 +106,16 @@ describe("GET /latest.json", () => {
 
 	it("should return 200 with updater data on successful fetch", async () => {
 		const mockUpdaterData = { version: "1.0.0", notes: "Test release" };
-		const mockFetch = vi.fn().mockImplementation((url) => {
+		const mockFetch = vi.fn().mockImplementation((url: string) => {
 			if (url === "https://api.github.com/repos/57471C/speedDF/releases/latest") {
 				return Promise.resolve({
 					ok: true,
-					json: () => Promise.resolve({
-						assets: [{ name: "latest.json", browser_download_url: "https://example.com/latest.json" }],
-					}),
+					json: () =>
+						Promise.resolve({
+							assets: [
+								{ name: "latest.json", browser_download_url: "https://example.com/latest.json" },
+							],
+						}),
 				});
 			} else if (url === "https://example.com/latest.json") {
 				return Promise.resolve({
@@ -121,10 +130,10 @@ describe("GET /latest.json", () => {
 		const mockRequest = { headers: { get: vi.fn().mockReturnValue(null) } };
 
 		const response = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 
 		expect(response.status).toBe(200);
 		const data = await response.json();
@@ -134,13 +143,16 @@ describe("GET /latest.json", () => {
 
 	it("should use cached download URL on subsequent requests", async () => {
 		const mockUpdaterData = { version: "1.0.0", notes: "Test release" };
-		const mockFetch = vi.fn().mockImplementation((url) => {
+		const mockFetch = vi.fn().mockImplementation((url: string) => {
 			if (url === "https://api.github.com/repos/57471C/speedDF/releases/latest") {
 				return Promise.resolve({
 					ok: true,
-					json: () => Promise.resolve({
-						assets: [{ name: "latest.json", browser_download_url: "https://example.com/latest.json" }],
-					}),
+					json: () =>
+						Promise.resolve({
+							assets: [
+								{ name: "latest.json", browser_download_url: "https://example.com/latest.json" },
+							],
+						}),
 				});
 			} else if (url === "https://example.com/latest.json") {
 				return Promise.resolve({
@@ -156,10 +168,10 @@ describe("GET /latest.json", () => {
 
 		// First request (cache miss)
 		const response1 = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 		expect(response1.status).toBe(200);
 		expect(mockFetch).toHaveBeenCalledTimes(2);
 
@@ -170,10 +182,10 @@ describe("GET /latest.json", () => {
 
 		// Second request (cache hit)
 		const response2 = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 		expect(response2.status).toBe(200);
 		// Should only call the asset URL, not the GitHub release API
 		expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -186,10 +198,10 @@ describe("GET /latest.json", () => {
 
 		// Third request (cache miss)
 		const response3 = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 		expect(response3.status).toBe(200);
 		expect(mockFetch).toHaveBeenCalledTimes(2);
 	});
@@ -203,10 +215,10 @@ describe("GET /latest.json", () => {
 		const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
 		const response = await GET({
-			fetch: mockFetch,
+			fetch: mockFetch as unknown as typeof fetch,
 			setHeaders: mockSetHeaders,
-			request: mockRequest,
-		} as any);
+			request: mockRequest as unknown as Request,
+		} as unknown as RequestEvent);
 
 		expect(response.status).toBe(500);
 		const data = await response.json();
