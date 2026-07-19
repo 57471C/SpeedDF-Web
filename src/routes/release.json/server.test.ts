@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./+server";
 
-describe("GET /latest.json", () => {
+describe("GET /release.json", () => {
 	let currentTime = new Date("2024-01-01T00:00:00Z").getTime();
 
 	beforeEach(() => {
