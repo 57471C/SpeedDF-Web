@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GITHUB_API_LATEST_RELEASE_URL } from "$lib/constants";
 import { GET } from "./+server";
 import type { RequestEvent } from "./$types";
 
@@ -35,12 +36,9 @@ describe("GET /latest.json", () => {
 			request: mockRequest as unknown as Request,
 		} as unknown as RequestEvent);
 
-		expect(mockFetch).toHaveBeenCalledWith(
-			"https://api.github.com/repos/57471C/speedDF/releases/latest",
-			{
-				headers: { "User-Agent": "speeddf-web-updater" },
-			},
-		);
+		expect(mockFetch).toHaveBeenCalledWith(GITHUB_API_LATEST_RELEASE_URL, {
+			headers: { "User-Agent": "speeddf-web-updater" },
+		});
 
 		expect(response.status).toBe(500);
 
@@ -74,7 +72,7 @@ describe("GET /latest.json", () => {
 
 	it("should return 500 when asset download fails", async () => {
 		const mockFetch = vi.fn().mockImplementation((url: string) => {
-			if (url === "https://api.github.com/repos/57471C/speedDF/releases/latest") {
+			if (url === GITHUB_API_LATEST_RELEASE_URL) {
 				return Promise.resolve({
 					ok: true,
 					json: () =>
@@ -107,7 +105,7 @@ describe("GET /latest.json", () => {
 	it("should return 200 with updater data on successful fetch", async () => {
 		const mockUpdaterData = { version: "1.0.0", notes: "Test release" };
 		const mockFetch = vi.fn().mockImplementation((url: string) => {
-			if (url === "https://api.github.com/repos/57471C/speedDF/releases/latest") {
+			if (url === GITHUB_API_LATEST_RELEASE_URL) {
 				return Promise.resolve({
 					ok: true,
 					json: () =>
@@ -144,7 +142,7 @@ describe("GET /latest.json", () => {
 	it("should use cached download URL on subsequent requests", async () => {
 		const mockUpdaterData = { version: "1.0.0", notes: "Test release" };
 		const mockFetch = vi.fn().mockImplementation((url: string) => {
-			if (url === "https://api.github.com/repos/57471C/speedDF/releases/latest") {
+			if (url === GITHUB_API_LATEST_RELEASE_URL) {
 				return Promise.resolve({
 					ok: true,
 					json: () =>
