@@ -1,7 +1,6 @@
+import { GITHUB_API_LATEST_RELEASE_URL, GITHUB_RELEASES_URL } from "$lib/constants";
 import type { GitHubRelease } from "$lib/types";
 import type { PageServerLoad } from "./$types";
-
-const RELEASES_URL = "https://github.com/57471C/speedDF/releases";
 
 export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 	// Cache the page at the Cloudflare edge for 1 hour to protect your GitHub API limits
@@ -9,7 +8,7 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 		"cache-control": "public, max-age=3600, s-maxage=3600",
 	});
 	try {
-		const res = await fetch("https://api.github.com/repos/57471C/speedDF/releases/latest", {
+		const res = await fetch(GITHUB_API_LATEST_RELEASE_URL, {
 			headers: { "User-Agent": "speeddf-web-landing-page" },
 		});
 
@@ -21,19 +20,19 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 		const assets = release.assets || [];
 
 		// Exact match extensions from your Tauri GitHub action outputs
-		let winDownload = RELEASES_URL;
-		let macDownload = RELEASES_URL;
-		let linuxDownload = RELEASES_URL;
+		let winDownload = GITHUB_RELEASES_URL;
+		let macDownload = GITHUB_RELEASES_URL;
+		let linuxDownload = GITHUB_RELEASES_URL;
 		let found = 0;
 
 		for (const asset of assets) {
-			if (winDownload === RELEASES_URL && asset.name.endsWith(".exe")) {
+			if (winDownload === GITHUB_RELEASES_URL && asset.name.endsWith(".exe")) {
 				winDownload = asset.browser_download_url;
 				found++;
-			} else if (macDownload === RELEASES_URL && asset.name.endsWith(".dmg")) {
+			} else if (macDownload === GITHUB_RELEASES_URL && asset.name.endsWith(".dmg")) {
 				macDownload = asset.browser_download_url;
 				found++;
-			} else if (linuxDownload === RELEASES_URL && asset.name.endsWith(".AppImage")) {
+			} else if (linuxDownload === GITHUB_RELEASES_URL && asset.name.endsWith(".AppImage")) {
 				linuxDownload = asset.browser_download_url;
 				found++;
 			}
@@ -46,9 +45,9 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 		console.error("Error fetching GitHub release:", error);
 		// Safe fallbacks pointing to the root releases page if the API fails
 		return {
-			winDownload: RELEASES_URL,
-			macDownload: RELEASES_URL,
-			linuxDownload: RELEASES_URL,
+			winDownload: GITHUB_RELEASES_URL,
+			macDownload: GITHUB_RELEASES_URL,
+			linuxDownload: GITHUB_RELEASES_URL,
 			version: "latest",
 		};
 	}

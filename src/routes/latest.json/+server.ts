@@ -1,4 +1,5 @@
 import { json } from "@sveltejs/kit";
+import { GITHUB_API_LATEST_RELEASE_URL } from "$lib/constants";
 import type { GitHubRelease } from "$lib/types";
 import type { RequestHandler } from "./$types";
 
@@ -56,7 +57,7 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 			downloadUrl = cachedAssetUrl.url;
 		} else {
 			// 1. Query the GitHub API for your app's absolute latest release
-			const response = await fetch("https://api.github.com/repos/57471C/speedDF/releases/latest", {
+			const response = await fetch(GITHUB_API_LATEST_RELEASE_URL, {
 				headers: { "User-Agent": "speeddf-web-updater" },
 			});
 

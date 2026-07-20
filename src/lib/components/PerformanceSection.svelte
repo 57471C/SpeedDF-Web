@@ -1,5 +1,5 @@
 <script lang="ts">
-	import PerformanceCard from './PerformanceCard.svelte';
+import PerformanceCard from "./PerformanceCard.svelte";
 </script>
 
 <section class="relative z-10 flex w-full items-center justify-center px-6 pb-20">
