@@ -2,9 +2,10 @@ import { json } from "@sveltejs/kit";
 import type { GitHubRelease } from "$lib/types";
 import type { RequestHandler } from "./$types";
 
-// Cache the resolved asset URL for 5 minutes to avoid hitting the GitHub API rate limit
+// Cache the downloaded JSON payload for 5 minutes to avoid hitting the GitHub API rate limit
 // and making two sequential HTTP requests per function invocation.
-let cachedAssetUrl: { url: string; expiresAt: number } | null = null;
+// biome-ignore lint/suspicious/noExplicitAny: Data is passed from GitHub directly as unknown JSON payload
+let cachedAssetData: { data: any; expiresAt: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 function getAllowedOrigin(origin: string | null): string | null {
@@ -50,38 +51,39 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 	}
 
 	try {
-		let downloadUrl: string;
-
-		if (cachedAssetUrl && Date.now() < cachedAssetUrl.expiresAt) {
-			downloadUrl = cachedAssetUrl.url;
-		} else {
-			// 1. Query the GitHub API for your app's absolute latest release
-			const response = await fetch("https://api.github.com/repos/57471C/speedDF/releases/latest", {
-				headers: { "User-Agent": "speeddf-web-updater" },
+		if (cachedAssetData && Date.now() < cachedAssetData.expiresAt) {
+			setHeaders({
+				"cache-control": "public, max-age=300",
 			});
-
-			if (!response.ok) {
-				return json({ error: "Failed to fetch release from GitHub" }, { status: 500 });
-			}
-
-			const release = (await response.json()) as GitHubRelease;
-
-			// 2. Find the latest.json asset that Tauri uploaded to the release
-			const latestJsonAsset = release.assets?.find((asset) => asset.name === "latest.json");
-
-			if (!latestJsonAsset) {
-				return json(
-					{ error: "latest.json file not found in the latest GitHub release assets" },
-					{ status: 404 },
-				);
-			}
-
-			downloadUrl = latestJsonAsset.browser_download_url;
-			cachedAssetUrl = {
-				url: downloadUrl,
-				expiresAt: Date.now() + CACHE_TTL_MS,
-			};
+			return json(cachedAssetData.data, {
+				headers: {
+					"content-type": "application/json",
+				},
+			});
 		}
+
+		// 1. Query the GitHub API for your app's absolute latest release
+		const response = await fetch("https://api.github.com/repos/57471C/speedDF/releases/latest", {
+			headers: { "User-Agent": "speeddf-web-updater" },
+		});
+
+		if (!response.ok) {
+			return json({ error: "Failed to fetch release from GitHub" }, { status: 500 });
+		}
+
+		const release = (await response.json()) as GitHubRelease;
+
+		// 2. Find the latest.json asset that Tauri uploaded to the release
+		const latestJsonAsset = release.assets?.find((asset) => asset.name === "latest.json");
+
+		if (!latestJsonAsset) {
+			return json(
+				{ error: "latest.json file not found in the latest GitHub release assets" },
+				{ status: 404 },
+			);
+		}
+
+		const downloadUrl = latestJsonAsset.browser_download_url;
 
 		// 3. Grab the live content of that file straight from GitHub's CDN
 		const assetResponse = await fetch(downloadUrl);
@@ -90,6 +92,11 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 		}
 
 		const updaterData = await assetResponse.json();
+
+		cachedAssetData = {
+			data: updaterData,
+			expiresAt: Date.now() + CACHE_TTL_MS,
+		};
 
 		// 4. Feed it back to the Tauri app with CORS clearance and a short cache window
 		setHeaders({

@@ -141,7 +141,7 @@ describe("GET /latest.json", () => {
 		expect(mockSetHeaders).toHaveBeenCalledWith({ "cache-control": "public, max-age=300" });
 	});
 
-	it("should use cached download URL on subsequent requests", async () => {
+	it("should use cached asset payload on subsequent requests", async () => {
 		const mockUpdaterData = { version: "1.0.0", notes: "Test release" };
 		const mockFetch = vi.fn().mockImplementation((url: string) => {
 			if (url === "https://api.github.com/repos/57471C/speedDF/releases/latest") {
@@ -187,9 +187,10 @@ describe("GET /latest.json", () => {
 			request: mockRequest as unknown as Request,
 		} as unknown as RequestEvent);
 		expect(response2.status).toBe(200);
-		// Should only call the asset URL, not the GitHub release API
-		expect(mockFetch).toHaveBeenCalledTimes(1);
-		expect(mockFetch).toHaveBeenCalledWith("https://example.com/latest.json");
+		// Should completely bypass all fetches and use memory cache
+		expect(mockFetch).toHaveBeenCalledTimes(0);
+		const data2 = await response2.json();
+		expect(data2).toEqual(mockUpdaterData);
 
 		// Advance time past TTL
 		vi.advanceTimersByTime(5 * 60 * 1000);
