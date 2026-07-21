@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { load } from "./+page.server";
 
 describe("load", () => {
@@ -12,9 +12,12 @@ describe("load", () => {
 				assets: [
 					{ name: "speeddf-v1.0.0.exe", browser_download_url: "https://example.com/speeddf.exe" },
 					{ name: "speeddf-v1.0.0.dmg", browser_download_url: "https://example.com/speeddf.dmg" },
-					{ name: "speeddf-v1.0.0.AppImage", browser_download_url: "https://example.com/speeddf.AppImage" }
-				]
-			})
+					{
+						name: "speeddf-v1.0.0.AppImage",
+						browser_download_url: "https://example.com/speeddf.AppImage",
+					},
+				],
+			}),
 		});
 
 		const mockSetHeaders = vi.fn();
@@ -22,7 +25,7 @@ describe("load", () => {
 		const result = await load({
 			fetch: mockFetch,
 			setHeaders: mockSetHeaders,
-		} as any);
+		} as unknown as Parameters<typeof load>[0]);
 
 		expect(mockSetHeaders).toHaveBeenCalledWith({
 			"cache-control": "public, max-age=3600, s-maxage=3600",
@@ -32,7 +35,7 @@ describe("load", () => {
 			winDownload: "https://example.com/speeddf.exe",
 			macDownload: "https://example.com/speeddf.dmg",
 			linuxDownload: "https://example.com/speeddf.AppImage",
-			version: "v1.0.0"
+			version: "v1.0.0",
 		});
 	});
 
@@ -42,10 +45,13 @@ describe("load", () => {
 			json: async () => ({
 				tag_name: "v1.0.1",
 				assets: [
-					{ name: "speeddf-v1.0.1.tar.gz", browser_download_url: "https://example.com/speeddf.tar.gz" },
+					{
+						name: "speeddf-v1.0.1.tar.gz",
+						browser_download_url: "https://example.com/speeddf.tar.gz",
+					},
 					// Missing .exe, .dmg, .AppImage
-				]
-			})
+				],
+			}),
 		});
 
 		const mockSetHeaders = vi.fn();
@@ -53,13 +59,13 @@ describe("load", () => {
 		const result = await load({
 			fetch: mockFetch,
 			setHeaders: mockSetHeaders,
-		} as any);
+		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
 			winDownload: RELEASES_URL,
 			macDownload: RELEASES_URL,
 			linuxDownload: RELEASES_URL,
-			version: "v1.0.1"
+			version: "v1.0.1",
 		});
 	});
 
@@ -70,13 +76,13 @@ describe("load", () => {
 		const result = await load({
 			fetch: mockFetch,
 			setHeaders: mockSetHeaders,
-		} as any);
+		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
 			winDownload: RELEASES_URL,
 			macDownload: RELEASES_URL,
 			linuxDownload: RELEASES_URL,
-			version: "latest"
+			version: "latest",
 		});
 	});
 
@@ -84,20 +90,20 @@ describe("load", () => {
 		const mockFetch = vi.fn().mockResolvedValue({
 			ok: false,
 			status: 403,
-			statusText: "Forbidden"
+			statusText: "Forbidden",
 		});
 		const mockSetHeaders = vi.fn();
 
 		const result = await load({
 			fetch: mockFetch,
 			setHeaders: mockSetHeaders,
-		} as any);
+		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
 			winDownload: RELEASES_URL,
 			macDownload: RELEASES_URL,
 			linuxDownload: RELEASES_URL,
-			version: "latest"
+			version: "latest",
 		});
 	});
 
@@ -105,21 +111,21 @@ describe("load", () => {
 		const mockFetch = vi.fn().mockResolvedValue({
 			ok: true,
 			json: async () => ({
-				assets: []
-			})
+				assets: [],
+			}),
 		});
 		const mockSetHeaders = vi.fn();
 
 		const result = await load({
 			fetch: mockFetch,
 			setHeaders: mockSetHeaders,
-		} as any);
+		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
 			winDownload: RELEASES_URL,
 			macDownload: RELEASES_URL,
 			linuxDownload: RELEASES_URL,
-			version: "v0.0.0"
+			version: "v0.0.0",
 		});
 	});
 
@@ -127,21 +133,21 @@ describe("load", () => {
 		const mockFetch = vi.fn().mockResolvedValue({
 			ok: true,
 			json: async () => ({
-				tag_name: "v1.0.0"
-			})
+				tag_name: "v1.0.0",
+			}),
 		});
 		const mockSetHeaders = vi.fn();
 
 		const result = await load({
 			fetch: mockFetch,
 			setHeaders: mockSetHeaders,
-		} as any);
+		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
 			winDownload: RELEASES_URL,
 			macDownload: RELEASES_URL,
 			linuxDownload: RELEASES_URL,
-			version: "v1.0.0"
+			version: "v1.0.0",
 		});
 	});
 });
