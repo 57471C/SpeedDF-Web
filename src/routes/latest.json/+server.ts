@@ -2,15 +2,13 @@ import { json } from "@sveltejs/kit";
 import type { GitHubRelease } from "$lib/types";
 import type { RequestHandler } from "./$types";
 
-// Cache the downloaded JSON payload for 5 minutes to avoid hitting the GitHub API rate limit
-// and making two sequential HTTP requests per function invocation.
+// Cache the downloaded JSON payload for 5 minutes
 // biome-ignore lint/suspicious/noExplicitAny: Data is passed from GitHub directly as unknown JSON payload
 let cachedAssetData: { data: any; expiresAt: number } | null = null;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 function getAllowedOrigin(origin: string | null): string | null {
 	if (!origin) return null;
-	// Allow standard Tauri and local development origins
 	if (
 		origin === "tauri://localhost" ||
 		origin === "https://tauri.localhost" ||
@@ -62,7 +60,6 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 			});
 		}
 
-		// 1. Query the GitHub API for your app's absolute latest release
 		const response = await fetch("https://api.github.com/repos/57471C/speedDF/releases/latest", {
 			headers: { "User-Agent": "speeddf-web-updater" },
 		});
@@ -73,7 +70,6 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 
 		const release = (await response.json()) as GitHubRelease;
 
-		// 2. Find the latest.json asset that Tauri uploaded to the release
 		const latestJsonAsset = release.assets?.find((asset) => asset.name === "latest.json");
 
 		if (!latestJsonAsset) {
@@ -85,7 +81,6 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 
 		const downloadUrl = latestJsonAsset.browser_download_url;
 
-		// 3. Grab the live content of that file straight from GitHub's CDN
 		const assetResponse = await fetch(downloadUrl);
 		if (!assetResponse.ok) {
 			return json({ error: "Failed to download asset data payload" }, { status: 500 });
@@ -98,9 +93,8 @@ export const GET: RequestHandler = async ({ fetch, setHeaders, request }) => {
 			expiresAt: Date.now() + CACHE_TTL_MS,
 		};
 
-		// 4. Feed it back to the Tauri app with CORS clearance and a short cache window
 		setHeaders({
-			"cache-control": "public, max-age=300", // Cache at edge for 5 minutes to keep it snappy
+			"cache-control": "public, max-age=300",
 		});
 		return json(updaterData, {
 			headers: {
