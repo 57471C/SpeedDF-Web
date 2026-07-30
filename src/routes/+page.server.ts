@@ -3,11 +3,25 @@ import type { PageServerLoad } from "./$types";
 
 const RELEASES_URL = "https://github.com/57471C/speedDF/releases";
 
+interface PageData {
+	winDownload: string;
+	macDownload: string;
+	linuxDownload: string;
+	version: string;
+}
+
+let cachedPageData: { data: PageData; expiresAt: number } | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
 export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 	// Cache the page response at Cloudflare's edge for 15 minutes
 	setHeaders({
 		"cache-control": "public, max-age=900, s-maxage=900",
 	});
+
+	if (cachedPageData && Date.now() < cachedPageData.expiresAt) {
+		return cachedPageData.data;
+	}
 
 	try {
 		// 1. Primary Attempt: Call GitHub API for direct release assets
@@ -54,12 +68,14 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 				}
 			}
 
-			return {
+			const data = {
 				winDownload: winDownload || `${RELEASES_URL}/latest`,
 				macDownload: macDownload || `${RELEASES_URL}/latest`,
 				linuxDownload: linuxDownload || `${RELEASES_URL}/latest`,
 				version,
 			};
+			cachedPageData = { data, expiresAt: Date.now() + CACHE_TTL_MS };
+			return data;
 		}
 	} catch (e) {
 		console.error("Direct GitHub API call failed, falling back to internal manifest:", e);
@@ -90,17 +106,21 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 				platforms["linux-x86_64"]?.url ||
 				`${RELEASES_URL}/latest`;
 
-			return { winDownload, macDownload, linuxDownload, version };
+			const data = { winDownload, macDownload, linuxDownload, version };
+			cachedPageData = { data, expiresAt: Date.now() + CACHE_TTL_MS };
+			return data;
 		}
 	} catch (e) {
 		console.error("Internal /latest.json fallback failed:", e);
 	}
 
 	// 3. Emergency Fallback
-	return {
+	const fallbackData = {
 		winDownload: `${RELEASES_URL}/latest`,
 		macDownload: `${RELEASES_URL}/latest`,
 		linuxDownload: `${RELEASES_URL}/latest`,
 		version: "v1.0.2",
 	};
+	cachedPageData = { data: fallbackData, expiresAt: Date.now() + CACHE_TTL_MS };
+	return fallbackData;
 };

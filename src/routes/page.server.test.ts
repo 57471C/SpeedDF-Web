@@ -1,7 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { load } from "./+page.server";
 
 describe("load", () => {
+	let mockDateNowVal = 0;
+	beforeEach(() => {
+		vi.spyOn(Date, "now").mockImplementation(() => {
+			mockDateNowVal += 10000000; // Increment by a large amount (more than 5 mins) to expire cache
+			return mockDateNowVal;
+		});
+	});
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
 	const RELEASES_URL = "https://github.com/57471C/speedDF/releases";
 
 	it("should return correct download URLs when matching assets exist", async () => {
@@ -28,7 +39,7 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(mockSetHeaders).toHaveBeenCalledWith({
-			"cache-control": "public, max-age=3600, s-maxage=3600",
+			"cache-control": "public, max-age=900, s-maxage=900",
 		});
 
 		expect(result).toEqual({
@@ -62,9 +73,9 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: RELEASES_URL,
-			macDownload: RELEASES_URL,
-			linuxDownload: RELEASES_URL,
+			winDownload: `${RELEASES_URL}/latest`,
+			macDownload: "https://example.com/speeddf.tar.gz",
+			linuxDownload: `${RELEASES_URL}/latest`,
 			version: "v1.0.1",
 		});
 	});
@@ -79,10 +90,10 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: RELEASES_URL,
-			macDownload: RELEASES_URL,
-			linuxDownload: RELEASES_URL,
-			version: "latest",
+			winDownload: `${RELEASES_URL}/latest`,
+			macDownload: `${RELEASES_URL}/latest`,
+			linuxDownload: `${RELEASES_URL}/latest`,
+			version: "v1.0.2",
 		});
 	});
 
@@ -100,10 +111,10 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: RELEASES_URL,
-			macDownload: RELEASES_URL,
-			linuxDownload: RELEASES_URL,
-			version: "latest",
+			winDownload: `${RELEASES_URL}/latest`,
+			macDownload: `${RELEASES_URL}/latest`,
+			linuxDownload: `${RELEASES_URL}/latest`,
+			version: "v1.0.2",
 		});
 	});
 
@@ -122,10 +133,10 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: RELEASES_URL,
-			macDownload: RELEASES_URL,
-			linuxDownload: RELEASES_URL,
-			version: "v0.0.0",
+			winDownload: `${RELEASES_URL}/latest`,
+			macDownload: `${RELEASES_URL}/latest`,
+			linuxDownload: `${RELEASES_URL}/latest`,
+			version: "v1.0.2",
 		});
 	});
 
@@ -144,9 +155,9 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: RELEASES_URL,
-			macDownload: RELEASES_URL,
-			linuxDownload: RELEASES_URL,
+			winDownload: `${RELEASES_URL}/latest`,
+			macDownload: `${RELEASES_URL}/latest`,
+			linuxDownload: `${RELEASES_URL}/latest`,
 			version: "v1.0.0",
 		});
 	});
