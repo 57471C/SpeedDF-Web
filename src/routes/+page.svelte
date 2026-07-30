@@ -1,34 +1,28 @@
 <script lang="ts">
-// biome-ignore lint/correctness/noUnusedImports: rendered in template markup below
 import FeatureShowcase from "$lib/components/FeatureShowcase.svelte";
-// biome-ignore lint/correctness/noUnusedImports: rendered in template markup below
 import Footer from "$lib/components/Footer.svelte";
-// biome-ignore lint/correctness/noUnusedImports: rendered in template markup below
 import Header from "$lib/components/Header.svelte";
-// biome-ignore lint/correctness/noUnusedImports: rendered in template markup below
 import Hero from "$lib/components/Hero.svelte";
-// biome-ignore lint/correctness/noUnusedImports: rendered in template markup below
 import PerformanceSection from "$lib/components/PerformanceSection.svelte";
-// biome-ignore lint/correctness/noUnusedImports: rendered in template markup below
 import PrivacyModal from "$lib/components/PrivacyModal.svelte";
 import type { PageData } from "./$types";
 
-// Svelte 5 state controlling the modal presentation layer
 let showPrivacyModal = $state(false);
+
+// Active Tab state for the interactive preview (Svelte 5 rune)
+let activeTab = $state<"view" | "markup" | "grid">("view");
 
 function closeModal() {
 	showPrivacyModal = false;
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: handleKeydown is used in svelte:window template markup
 function handleKeydown(e: KeyboardEvent) {
 	if (e.key === "Escape" && showPrivacyModal) {
 		closeModal();
 	}
 }
 
-// biome-ignore lint/correctness/noUnusedVariables: data is used in template markup below
-let { data }: { data: PageData } = $props(); // Svelte 5 runes syntax
+let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -37,6 +31,7 @@ let { data }: { data: PageData } = $props(); // Svelte 5 runes syntax
 
 <main class="relative z-10 flex flex-grow flex-col items-center justify-center px-6 pb-10 pt-24">
 	<div class="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(0,240,255,0.03)_0%,transparent_70%)]"></div>
+	
 	<div class="relative z-10 flex w-full max-w-5xl flex-col items-center text-center">
 		<Hero
 			winDownload={data.winDownload}
@@ -44,33 +39,61 @@ let { data }: { data: PageData } = $props(); // Svelte 5 runes syntax
 			linuxDownload={data.linuxDownload}
 			version={data.version}
 		/>
-		
-		<FeatureShowcase
-			badge="01 / DOCUMENT VIEW"
-			title="Blazing-Fast Viewing"
-			description="Open, scroll, and browse heavy PDF files instantly. A lightweight native engine designed with focus on readability and smooth performance."
-			imageSrc="/assets/screenshots/mainView.png"
-			imageAlt="speedDF Main Document View"
-			mbClass="mb-24"
-		/>
 
-		<FeatureShowcase
-			badge="02 / ANNOTATION & MARKUP"
-			title="Rich Markup & Signatures"
-			description="Highlight key text, sketch freehand, place geometric shapes, and add quick text markups. Securely sign or initial contracts locally in seconds."
-			imageSrc="/assets/screenshots/markup.png"
-			imageAlt="speedDF Annotation and Markups"
-			mbClass="mb-24"
-		/>
+		<section class="mt-12 w-full rounded-2xl border border-white/10 bg-zinc-950/60 p-4 backdrop-blur-xl md:p-8">
+			
+			<div class="mb-8 flex justify-center gap-2 border-b border-white/10 pb-4">
+				<button 
+					class="rounded-lg px-4 py-2 font-mono text-sm transition-colors {activeTab === 'view' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'text-zinc-400 hover:text-white'}"
+					onclick={() => activeTab = 'view'}
+				>
+					01 / Viewer
+				</button>
 
-		<FeatureShowcase
-			badge="03 / DOCUMENT MANAGEMENT"
-			title="Multi-Page Grid Editor"
-			description="Take control of your document structure. Effortlessly drag to reorganize, rotate, delete, or merge multiple pages in a visual dashboard layout."
-			imageSrc="/assets/screenshots/gridView.png"
-			imageAlt="speedDF Grid View and Page Manager"
-			mbClass="mb-20"
-		/>
+				<button 
+					class="rounded-lg px-4 py-2 font-mono text-sm transition-colors {activeTab === 'markup' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'text-zinc-400 hover:text-white'}"
+					onclick={() => activeTab = 'markup'}
+				>
+					02 / Annotate & Sign
+				</button>
+
+				<button 
+					class="rounded-lg px-4 py-2 font-mono text-sm transition-colors {activeTab === 'grid' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40' : 'text-zinc-400 hover:text-white'}"
+					onclick={() => activeTab = 'grid'}
+				>
+					03 / Grid View / Page Organizer
+				</button>
+			</div>
+
+			{#if activeTab === 'view'}
+				<FeatureShowcase
+					badge="INSTANT COLD START"
+					title="Opens before you finish clicking."
+					description="No splash screens, no cloud handshakes. Just a native Rust renderer built for fast scrolling through large documents."
+					imageSrc="/assets/screenshots/mainView.png"
+					imageAlt="speedDF Main Document View"
+					mbClass="mb-4"
+				/>
+			{:else if activeTab === 'markup'}
+				<FeatureShowcase
+					badge="VECTOR COMPILATION"
+					title="Edits baked straight into the PDF tree."
+					description="Highlights, vector freehand, text edits, and signatures are mathematically embedded directly into the document using custom font metrics."
+					imageSrc="/assets/screenshots/markup.png"
+					imageAlt="speedDF Annotation and Markups"
+					mbClass="mb-4"
+				/>
+			{:else if activeTab === 'grid'}
+				<FeatureShowcase
+					badge="PAGE MANAGEMENT"
+					title="Visual Multi-Page Grid Editor."
+					description="Reorder pages via drag and drop, rotate orientations, or strip out unwanted pages visually in seconds."
+					imageSrc="/assets/screenshots/gridView.png"
+					imageAlt="speedDF Grid View and Page Manager"
+					mbClass="mb-4"
+				/>
+			{/if}
+		</section>
 	</div>
 </main>
 
