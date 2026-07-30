@@ -1,4 +1,6 @@
 <script lang="ts">
+import BrandMark from "./BrandMark.svelte";
+
 interface Props {
 	onOpenPrivacyModal: () => void;
 }
@@ -10,18 +12,25 @@ let { onOpenPrivacyModal }: Props = $props();
 const currentYear = new Date().getFullYear();
 </script>
 
-<footer class="relative z-10 w-full border-t border-[#1e293b]/60 bg-[#080e1c]/90 py-8">
-	<div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
-		<div class="font-display text-sm font-bold text-slate-50">
-			speed<span class="text-[#00F0FF]">DF</span>
+<footer class="relative z-10 w-full border-t border-border-dark bg-background py-10">
+	<div class="mx-auto flex max-w-6xl flex-col gap-8 px-6 md:flex-row md:items-end md:justify-between">
+		<div class="max-w-sm">
+			<BrandMark href="/" size="sm" />
+			<p class="mt-2 text-sm leading-relaxed text-text-secondary">
+				Open source PDF editor. Built local, ships small, stays on your machine.
+			</p>
 		</div>
-		<div class="flex flex-wrap justify-center gap-6 font-mono text-xs uppercase tracking-wider">
-			<a class="text-[#94a3b8] transition-colors duration-150 hover:text-[#00F0FF]" href='https://github.com/57471C/speedDF/wiki'>Documentation</a>
-			<button type="button" onclick={onOpenPrivacyModal} class="cursor-pointer text-[#94a3b8] transition-colors duration-150 hover:text-[#00F0FF]">Privacy</button>
-			<a class="text-[#94a3b8] transition-colors duration-150 hover:text-[#00F0FF]" href='https://github.com/57471C/speedDF'>GitHub</a>
-		</div>
-		<div class="font-mono text-xs uppercase tracking-wider text-[#94a3b8]">
-			© {currentYear} speedDF. Built for performance.
-		</div>
+
+		<nav class="flex flex-wrap gap-x-6 gap-y-3 font-mono text-xs text-text-secondary" aria-label="Footer">
+			<a class="transition-colors duration-150 hover:text-primary" href="https://github.com/57471C/speedDF/wiki">Docs</a>
+			<button type="button" onclick={onOpenPrivacyModal} class="cursor-pointer transition-colors duration-150 hover:text-primary">Privacy</button>
+			<a class="transition-colors duration-150 hover:text-primary" href="https://github.com/57471C/speedDF">GitHub</a>
+			<a class="transition-colors duration-150 hover:text-primary" href="https://github.com/57471C/speedDF/releases">Releases</a>
+			<a class="transition-colors duration-150 hover:text-primary" href="https://buymeacoffee.com/speeddf" target="_blank" rel="noreferrer">Buy me a coffee</a>
+		</nav>
+
+		<p class="font-mono text-xs text-text-secondary/80">
+			© {currentYear} speedDF
+		</p>
 	</div>
 </footer>

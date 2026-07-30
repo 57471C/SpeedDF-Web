@@ -10,6 +10,6 @@ interface Props {
 let { children }: Props = $props();
 </script>
 
-<div class="min-h-screen flex flex-col bg-cyber-grid">
+<div class="flex min-h-[100dvh] flex-col bg-background">
 	{@render children()}
 </div>
