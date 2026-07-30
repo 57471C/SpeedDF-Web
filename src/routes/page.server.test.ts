@@ -14,6 +14,7 @@ describe("load", () => {
 	});
 
 	const RELEASES_URL = "https://github.com/57471C/speedDF/releases";
+	const RELEASES_LATEST = `${RELEASES_URL}/latest`;
 
 	it("should return correct download URLs when matching assets exist", async () => {
 		const mockFetch = vi.fn().mockResolvedValue({
@@ -27,6 +28,8 @@ describe("load", () => {
 						name: "speeddf-v1.0.0.AppImage",
 						browser_download_url: "https://example.com/speeddf.AppImage",
 					},
+					{ name: "speeddf_1.0.0_amd64.deb", browser_download_url: "https://example.com/speeddf.deb" },
+					{ name: "speeddf-1.0.0-1.x86_64.rpm", browser_download_url: "https://example.com/speeddf.rpm" },
 				],
 			}),
 		});
@@ -45,8 +48,39 @@ describe("load", () => {
 		expect(result).toEqual({
 			winDownload: "https://example.com/speeddf.exe",
 			macDownload: "https://example.com/speeddf.dmg",
-			linuxDownload: "https://example.com/speeddf.AppImage",
+			linuxAppImage: "https://example.com/speeddf.AppImage",
+			linuxDeb: "https://example.com/speeddf.deb",
+			linuxRpm: "https://example.com/speeddf.rpm",
 			version: "v1.0.0",
+		});
+	});
+
+	it("should prefer AppImage as linuxAppImage and leave missing formats empty", async () => {
+		const mockFetch = vi.fn().mockResolvedValue({
+			ok: true,
+			json: async () => ({
+				tag_name: "v1.2.0",
+				assets: [
+					{ name: "setup.exe", browser_download_url: "https://example.com/win.exe" },
+					{ name: "app.dmg", browser_download_url: "https://example.com/mac.dmg" },
+					{
+						name: "speeddf_1.2.0_amd64.AppImage",
+						browser_download_url: "https://example.com/app.AppImage",
+					},
+					{ name: "speeddf_1.2.0_amd64.deb", browser_download_url: "https://example.com/app.deb" },
+				],
+			}),
+		});
+
+		const result = await load({
+			fetch: mockFetch,
+			setHeaders: vi.fn(),
+		} as unknown as Parameters<typeof load>[0]);
+
+		expect(result).toMatchObject({
+			linuxAppImage: "https://example.com/app.AppImage",
+			linuxDeb: "https://example.com/app.deb",
+			linuxRpm: "",
 		});
 	});
 
@@ -73,9 +107,11 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: `${RELEASES_URL}/latest`,
+			winDownload: RELEASES_LATEST,
 			macDownload: "https://example.com/speeddf.tar.gz",
-			linuxDownload: `${RELEASES_URL}/latest`,
+			linuxAppImage: RELEASES_LATEST,
+			linuxDeb: "",
+			linuxRpm: "",
 			version: "v1.0.1",
 		});
 	});
@@ -90,9 +126,11 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: `${RELEASES_URL}/latest`,
-			macDownload: `${RELEASES_URL}/latest`,
-			linuxDownload: `${RELEASES_URL}/latest`,
+			winDownload: RELEASES_LATEST,
+			macDownload: RELEASES_LATEST,
+			linuxAppImage: RELEASES_LATEST,
+			linuxDeb: "",
+			linuxRpm: "",
 			version: "v1.0.2",
 		});
 	});
@@ -111,9 +149,11 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: `${RELEASES_URL}/latest`,
-			macDownload: `${RELEASES_URL}/latest`,
-			linuxDownload: `${RELEASES_URL}/latest`,
+			winDownload: RELEASES_LATEST,
+			macDownload: RELEASES_LATEST,
+			linuxAppImage: RELEASES_LATEST,
+			linuxDeb: "",
+			linuxRpm: "",
 			version: "v1.0.2",
 		});
 	});
@@ -133,9 +173,11 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: `${RELEASES_URL}/latest`,
-			macDownload: `${RELEASES_URL}/latest`,
-			linuxDownload: `${RELEASES_URL}/latest`,
+			winDownload: RELEASES_LATEST,
+			macDownload: RELEASES_LATEST,
+			linuxAppImage: RELEASES_LATEST,
+			linuxDeb: "",
+			linuxRpm: "",
 			version: "v1.0.2",
 		});
 	});
@@ -155,9 +197,11 @@ describe("load", () => {
 		} as unknown as Parameters<typeof load>[0]);
 
 		expect(result).toEqual({
-			winDownload: `${RELEASES_URL}/latest`,
-			macDownload: `${RELEASES_URL}/latest`,
-			linuxDownload: `${RELEASES_URL}/latest`,
+			winDownload: RELEASES_LATEST,
+			macDownload: RELEASES_LATEST,
+			linuxAppImage: RELEASES_LATEST,
+			linuxDeb: "",
+			linuxRpm: "",
 			version: "v1.0.0",
 		});
 	});

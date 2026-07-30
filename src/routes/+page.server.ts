@@ -2,16 +2,27 @@ import type { GitHubRelease } from "$lib/types";
 import type { PageServerLoad } from "./$types";
 
 const RELEASES_URL = "https://github.com/57471C/speedDF/releases";
+const RELEASES_LATEST = `${RELEASES_URL}/latest`;
 
 interface PageData {
 	winDownload: string;
 	macDownload: string;
-	linuxDownload: string;
+	linuxAppImage: string;
+	linuxDeb: string;
+	linuxRpm: string;
 	version: string;
 }
 
 let cachedPageData: { data: PageData; expiresAt: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000;
+
+function emptyLinux(): Pick<PageData, "linuxAppImage" | "linuxDeb" | "linuxRpm"> {
+	return {
+		linuxAppImage: RELEASES_LATEST,
+		linuxDeb: "",
+		linuxRpm: "",
+	};
+}
 
 export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 	// Cache the page response at Cloudflare's edge for 15 minutes
@@ -40,7 +51,9 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 
 			let winDownload = "";
 			let macDownload = "";
-			let linuxDownload = "";
+			let linuxAppImage = "";
+			let linuxDeb = "";
+			let linuxRpm = "";
 
 			for (const asset of assets) {
 				const name = asset.name.toLowerCase();
@@ -59,19 +72,22 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 				) {
 					macDownload = asset.browser_download_url;
 				}
-				// Linux: .appimage or .deb
-				else if (
-					!linuxDownload &&
-					(name.endsWith(".appimage") || name.endsWith(".deb") || name.endsWith(".rpm"))
-				) {
-					linuxDownload = asset.browser_download_url;
+				// Linux: collect each format independently
+				else if (!linuxAppImage && name.endsWith(".appimage")) {
+					linuxAppImage = asset.browser_download_url;
+				} else if (!linuxDeb && name.endsWith(".deb")) {
+					linuxDeb = asset.browser_download_url;
+				} else if (!linuxRpm && name.endsWith(".rpm")) {
+					linuxRpm = asset.browser_download_url;
 				}
 			}
 
-			const data = {
-				winDownload: winDownload || `${RELEASES_URL}/latest`,
-				macDownload: macDownload || `${RELEASES_URL}/latest`,
-				linuxDownload: linuxDownload || `${RELEASES_URL}/latest`,
+			const data: PageData = {
+				winDownload: winDownload || RELEASES_LATEST,
+				macDownload: macDownload || RELEASES_LATEST,
+				linuxAppImage: linuxAppImage || RELEASES_LATEST,
+				linuxDeb,
+				linuxRpm,
 				version,
 			};
 			cachedPageData = { data, expiresAt: Date.now() + CACHE_TTL_MS };
@@ -99,14 +115,27 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 				platforms["darwin-aarch64"]?.url ||
 				platforms["darwin-aarch64-app"]?.url ||
 				platforms["darwin-x86_64"]?.url ||
-				`${RELEASES_URL}/latest`;
+				RELEASES_LATEST;
 
-			const linuxDownload =
+			const linuxAppImage =
 				platforms["linux-x86_64-appimage"]?.url ||
 				platforms["linux-x86_64"]?.url ||
-				`${RELEASES_URL}/latest`;
+				RELEASES_LATEST;
 
-			const data = { winDownload, macDownload, linuxDownload, version };
+			const linuxDeb =
+				platforms["linux-x86_64-deb"]?.url || platforms["linux-amd64-deb"]?.url || "";
+
+			const linuxRpm =
+				platforms["linux-x86_64-rpm"]?.url || platforms["linux-amd64-rpm"]?.url || "";
+
+			const data: PageData = {
+				winDownload,
+				macDownload,
+				linuxAppImage,
+				linuxDeb,
+				linuxRpm,
+				version,
+			};
 			cachedPageData = { data, expiresAt: Date.now() + CACHE_TTL_MS };
 			return data;
 		}
@@ -115,10 +144,10 @@ export const load: PageServerLoad = async ({ fetch, setHeaders }) => {
 	}
 
 	// 3. Emergency Fallback
-	const fallbackData = {
-		winDownload: `${RELEASES_URL}/latest`,
-		macDownload: `${RELEASES_URL}/latest`,
-		linuxDownload: `${RELEASES_URL}/latest`,
+	const fallbackData: PageData = {
+		winDownload: RELEASES_LATEST,
+		macDownload: RELEASES_LATEST,
+		...emptyLinux(),
 		version: "v1.0.2",
 	};
 	cachedPageData = { data: fallbackData, expiresAt: Date.now() + CACHE_TTL_MS };
