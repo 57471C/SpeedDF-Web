@@ -1,5 +1,6 @@
 <script lang="ts">
 import BrandMark from "./BrandMark.svelte";
+import LeanStudioCredit from "./LeanStudioCredit.svelte";
 
 interface Props {
 	onOpenPrivacyModal: () => void;
@@ -29,8 +30,11 @@ const currentYear = new Date().getFullYear();
 			<a class="transition-colors duration-150 hover:text-primary" href="https://buymeacoffee.com/speeddf" target="_blank" rel="noreferrer">Buy me a coffee</a>
 		</nav>
 
-		<p class="font-mono text-xs text-text-secondary/80">
-			© {currentYear} speedDF
-		</p>
+		<div class="flex flex-col items-start gap-2 md:items-end">
+			<p class="font-mono text-xs text-text-secondary/80">
+				© {currentYear} speedDF
+			</p>
+			<LeanStudioCredit showIcon={false} />
+		</div>
 	</div>
 </footer>

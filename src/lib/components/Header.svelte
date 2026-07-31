@@ -1,12 +1,20 @@
 <script lang="ts">
 import BrandMark from "./BrandMark.svelte";
+import LeanStudioCredit from "./LeanStudioCredit.svelte";
 </script>
 
 <header class="sticky top-0 z-50 w-full border-b border-border-dark/80 bg-background/85 backdrop-blur-md">
-	<div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-		<BrandMark href="/" size="md" />
+	<div class="relative mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+		<div class="relative z-10 min-w-0 shrink-0">
+			<BrandMark href="/" size="md" />
+		</div>
 
-		<div class="flex items-center gap-3">
+		<!-- True center, independent of left/right widths -->
+		<div class="absolute inset-x-0 flex justify-center px-2">
+			<LeanStudioCredit prefix="" size="md" wordmarkClass="hidden md:inline" />
+		</div>
+
+		<div class="relative z-10 flex shrink-0 items-center gap-3">
 			<a
 				href="https://buymeacoffee.com/speeddf"
 				target="_blank"

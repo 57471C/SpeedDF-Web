@@ -1,4 +1,6 @@
 <script lang="ts">
+import { claimAndPlay, releaseVideo } from "$lib/exclusiveVideo";
+import { isFocusedSurface, setSurfaceRatio } from "$lib/videoFocus.svelte";
 import DownloadButton from "./DownloadButton.svelte";
 import LinuxDownloadButton from "./LinuxDownloadButton.svelte";
 
@@ -13,9 +15,53 @@ interface Props {
 
 // biome-ignore lint/correctness/noUnusedVariables: props are used in template markup below
 let { winDownload, macDownload, linuxAppImage, linuxDeb, linuxRpm, version }: Props = $props();
+
+let sectionEl: HTMLElement | undefined = $state();
+let videoEl: HTMLVideoElement | undefined = $state();
+
+const shouldPlay = $derived(isFocusedSurface("hero"));
+
+$effect(() => {
+	const el = sectionEl;
+	if (!el || typeof IntersectionObserver === "undefined") return;
+
+	const observer = new IntersectionObserver(
+		([entry]) => {
+			const ratio = entry.isIntersecting ? entry.intersectionRatio : 0;
+			setSurfaceRatio("hero", ratio);
+		},
+		{ threshold: [0, 0.25, 0.45, 0.5, 0.6, 0.75, 1] },
+	);
+	observer.observe(el);
+	return () => {
+		observer.disconnect();
+		setSurfaceRatio("hero", 0);
+	};
+});
+
+$effect(() => {
+	const video = videoEl;
+	const play = shouldPlay;
+	if (!video) return;
+
+	if (play) {
+		claimAndPlay(video, false);
+	} else {
+		releaseVideo(video);
+		try {
+			video.currentTime = 0;
+		} catch {
+			/* not seekable yet */
+		}
+	}
+
+	return () => {
+		releaseVideo(video);
+	};
+});
 </script>
 
-<section class="w-full pt-8 pb-12 md:pt-12 md:pb-16 lg:pt-14 lg:pb-20">
+<section bind:this={sectionEl} class="w-full pt-8 pb-12 md:pt-12 md:pb-16 lg:pt-14 lg:pb-20">
 	<div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
 		<div class="flex flex-col items-start text-left lg:col-span-5">
 			<h1 class="max-w-xl font-display text-4xl font-bold leading-[1.1] tracking-tight text-slate-50 md:text-5xl lg:text-[3.25rem]">
@@ -66,16 +112,17 @@ let { winDownload, macDownload, linuxAppImage, linuxDeb, linuxRpm, version }: Pr
 
 		<div class="lg:col-span-7">
 			<div class="group relative overflow-hidden rounded-xl border border-border-dark bg-surface-1 shadow-2xl shadow-black/40">
-				
 				<div class="relative overflow-hidden bg-background">
-					<img
-						src="/assets/screenshots/mainView.png"
-						alt="speedDF viewing a multi-page PDF with page thumbnails"
-						width="1600"
-						height="1000"
-						fetchpriority="high"
+					<video
+						bind:this={videoEl}
+						src="/assets/video/Light-Mode.webm"
+						muted
+						loop
+						playsinline
+						preload="metadata"
+						aria-label="speedDF light-mode document view"
 						class="block h-auto w-full origin-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-					/>
+					></video>
 				</div>
 			</div>
 		</div>

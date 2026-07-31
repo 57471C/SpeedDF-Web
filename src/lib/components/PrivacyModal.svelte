@@ -39,7 +39,14 @@ let { closeModal }: Props = $props();
 			<div>
 				<h4 class="mb-2 font-display text-sm font-semibold text-slate-50">What never leaves your PC</h4>
 				<p>
-					When you view, annotate, reorganize, or edit PDFs, all processing happens on-device. No file bytes or document metadata are uploaded to our servers or third-party services.
+					When you view, annotate, reorganize, edit, or run OCR on PDFs, all processing happens on-device. No file bytes, document metadata, or recognized text are uploaded to our servers or third-party services.
+				</p>
+			</div>
+
+			<div>
+				<h4 class="mb-2 font-display text-sm font-semibold text-slate-50">OCR models</h4>
+				<p>
+					Optional OCR downloads small model files <strong class="text-slate-200">once</strong> the first time you use that feature. After that, the models live on your disk and every recognition run stays offline — page images and extracted text never leave your machine.
 				</p>
 			</div>
 
@@ -47,6 +54,9 @@ let { closeModal }: Props = $props();
 				<h4 class="mb-2 font-display text-sm font-semibold text-slate-50">Network activity</h4>
 				<p>The app only talks to the network in these cases:</p>
 				<ul class="mt-2 list-disc space-y-1 pl-5">
+					<li>
+						<strong class="text-slate-200">OCR model download (one-time):</strong> if you use OCR and the models are not already cached, the app fetches them so recognition can run fully offline afterwards.
+					</li>
 					<li>
 						<strong class="text-slate-200">Update checks:</strong> optional queries to public release endpoints (for example GitHub) or this site to see if a newer version exists.
 					</li>
@@ -64,7 +74,7 @@ let { closeModal }: Props = $props();
 			</div>
 
 			<p class="border-t border-border-dark pt-4 font-mono text-xs text-text-secondary/80">
-				Last updated July 2024
+				Last updated July 2026
 			</p>
 		</div>
 	</div>

@@ -1,13 +1,16 @@
 <script lang="ts">
-type TabId = "view" | "markup" | "grid";
+import { claimAndPlay, releaseVideo } from "$lib/exclusiveVideo";
+import { isFocusedSurface, setSurfaceRatio } from "$lib/videoFocus.svelte";
+
+type TabId = "view" | "markup" | "grid" | "forms";
 
 interface Tab {
 	id: TabId;
 	label: string;
 	title: string;
 	description: string;
-	imageSrc: string;
-	imageAlt: string;
+	videoSrc: string;
+	videoLabel: string;
 }
 
 const tabs: Tab[] = [
@@ -17,8 +20,8 @@ const tabs: Tab[] = [
 		title: "Opens before you finish clicking.",
 		description:
 			"Native Rust renderer, multi-tab workspace, and page thumbnails on the side. Scroll large docs without the usual thrash.",
-		imageSrc: "/assets/screenshots/mainView.png",
-		imageAlt: "speedDF main document viewer with sidebar page thumbnails",
+		videoSrc: "/assets/video/Fast-Loading.webm",
+		videoLabel: "speedDF main document viewer opening and scrolling a PDF",
 	},
 	{
 		id: "markup",
@@ -26,8 +29,8 @@ const tabs: Tab[] = [
 		title: "Marks that actually stick.",
 		description:
 			"Text, freehand, highlights, shapes, stamps, and signatures. Edits bake into the PDF tree on save, not a fragile overlay.",
-		imageSrc: "/assets/screenshots/markup.png",
-		imageAlt: "speedDF annotation tools with freehand, shapes, signatures, and stamps",
+		videoSrc: "/assets/video/Annotations.webm",
+		videoLabel: "speedDF annotation tools with freehand, shapes, signatures, and stamps",
 	},
 	{
 		id: "grid",
@@ -35,23 +38,88 @@ const tabs: Tab[] = [
 		title: "Pages you can rearrange by hand.",
 		description:
 			"Rotate, reorder, delete, or insert pages in a visual grid. Merge another PDF when the pile gets out of order.",
-		imageSrc: "/assets/screenshots/gridView.png",
-		imageAlt: "speedDF grid organizer with selected page and rotate controls",
+		videoSrc: "/assets/video/Grid-Mode.webm",
+		videoLabel: "speedDF grid organizer with selected page and rotate controls",
+	},
+	{
+		id: "forms",
+		label: "Forms",
+		title: "Fill real form fields, signatures included.",
+		description:
+			"Type into fillable fields, check boxes, and drop signatures without printing and scanning. Local, instant, and saved into the PDF.",
+		videoSrc: "/assets/video/Forms.webm",
+		videoLabel: "speedDF filling PDF form fields and adding signatures",
 	},
 ];
 
 let activeTab = $state<TabId>("view");
+let sectionEl: HTMLElement | undefined = $state();
+let videoEl: HTMLVideoElement | undefined = $state();
 
 const active = $derived(tabs.find((t) => t.id === activeTab) ?? tabs[0]);
+const shouldPlay = $derived(isFocusedSurface("preview"));
+
+function selectTab(id: TabId) {
+	if (id === activeTab) return;
+	if (videoEl) releaseVideo(videoEl);
+	activeTab = id;
+}
+
+$effect(() => {
+	const el = sectionEl;
+	if (!el || typeof IntersectionObserver === "undefined") return;
+
+	const observer = new IntersectionObserver(
+		([entry]) => {
+			const ratio = entry.isIntersecting ? entry.intersectionRatio : 0;
+			setSurfaceRatio("preview", ratio);
+		},
+		{ threshold: [0, 0.25, 0.45, 0.5, 0.6, 0.75, 1] },
+	);
+	observer.observe(el);
+	return () => {
+		observer.disconnect();
+		setSurfaceRatio("preview", 0);
+	};
+});
+
+$effect(() => {
+	const video = videoEl;
+	const play = shouldPlay;
+	// Re-run when the active tab's video remounts via {#key}
+	void activeTab;
+
+	if (!video) return;
+
+	if (play) {
+		// Start from the beginning on tab focus / remount so demos feel intentional.
+		claimAndPlay(video, true);
+	} else {
+		releaseVideo(video);
+		try {
+			video.currentTime = 0;
+		} catch {
+			/* not seekable yet */
+		}
+	}
+
+	return () => {
+		releaseVideo(video);
+	};
+});
 </script>
 
-<section class="w-full py-16 md:py-24" aria-labelledby="preview-heading">
+<section
+	bind:this={sectionEl}
+	class="w-full py-16 md:py-24"
+	aria-labelledby="preview-heading"
+>
 	<div class="mb-8 max-w-2xl">
 		<h2 id="preview-heading" class="font-display text-2xl font-bold tracking-tight text-slate-50 md:text-3xl">
-			The app, not the pitch deck.
+			All of the features, none of the bloat.
 		</h2>
 		<p class="mt-3 text-base leading-relaxed text-text-secondary md:text-lg">
-			Same dark UI you get after install. Click through the views that matter.
+			Browse through the features that matter.
 		</p>
 	</div>
 
@@ -67,7 +135,7 @@ const active = $derived(tabs.find((t) => t.id === activeTab) ?? tabs[0]);
 					{activeTab === tab.id
 					? 'bg-primary/15 text-primary border border-primary/40'
 					: 'border border-transparent text-text-secondary hover:text-slate-50 hover:bg-surface-2'}"
-				onclick={() => (activeTab = tab.id)}
+				onclick={() => selectTab(tab.id)}
 			>
 				{tab.label}
 			</button>
@@ -91,13 +159,18 @@ const active = $derived(tabs.find((t) => t.id === activeTab) ?? tabs[0]);
 
 		<div class="group relative lg:col-span-8">
 			<div class="overflow-hidden rounded-xl border border-border-dark bg-surface-1 shadow-xl shadow-black/30">
-				<img
-					src={active.imageSrc}
-					alt={active.imageAlt}
-					width="1600"
-					height="1000"
-					class="block h-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.015]"
-				/>
+				{#key active.id}
+					<video
+						bind:this={videoEl}
+						src={active.videoSrc}
+						muted
+						loop
+						playsinline
+						preload="metadata"
+						aria-label={active.videoLabel}
+						class="block h-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.015]"
+					></video>
+				{/key}
 			</div>
 		</div>
 	</div>

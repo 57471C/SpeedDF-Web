@@ -14,6 +14,8 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --font-sans: "Inter", sans-serif;
+  /* LEAN.STUDIO wordmark — falls back cleanly if the webfont is blocked */
+  --font-lean: "Varela Round", "Nunito", "Quicksand", system-ui, sans-serif;
 }
 
 body::after {
