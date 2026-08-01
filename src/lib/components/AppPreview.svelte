@@ -96,10 +96,12 @@ $effect(() => {
 		claimAndPlay(video, true);
 	} else {
 		releaseVideo(video);
-		try {
-			video.currentTime = 0;
-		} catch {
-			/* not seekable yet */
+		if (!video.paused && video.readyState >= 2) {
+			try {
+				video.currentTime = 0;
+			} catch {
+				/* not seekable yet */
+			}
 		}
 	}
 
@@ -163,9 +165,11 @@ $effect(() => {
 					<video
 						bind:this={videoEl}
 						src={active.videoSrc}
+						poster="/og.png"
 						muted
 						loop
 						playsinline
+						webkit-playsinline
 						preload="metadata"
 						aria-label={active.videoLabel}
 						class="block h-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.015]"

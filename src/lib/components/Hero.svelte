@@ -48,10 +48,12 @@ $effect(() => {
 		claimAndPlay(video, false);
 	} else {
 		releaseVideo(video);
-		try {
-			video.currentTime = 0;
-		} catch {
-			/* not seekable yet */
+		if (!video.paused && video.readyState >= 2) {
+			try {
+				video.currentTime = 0;
+			} catch {
+				/* not seekable yet */
+			}
 		}
 	}
 
@@ -116,10 +118,12 @@ $effect(() => {
 					<video
 						bind:this={videoEl}
 						src="/assets/video/Light-Mode.webm"
+						poster="/og.png"
 						muted
 						loop
 						playsinline
-						preload="metadata"
+						webkit-playsinline
+						preload="auto"
 						aria-label="speedDF light-mode document view"
 						class="block h-auto w-full origin-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
 					></video>

@@ -5,15 +5,26 @@
 
 let current: HTMLVideoElement | null = null;
 
+/** Safely pause a video only if it has started playing / has decoded frames. */
+export function safePause(video: HTMLVideoElement): void {
+	if (!video.paused && video.readyState >= 2) {
+		try {
+			video.pause();
+		} catch {
+			/* ignore pause errors */
+		}
+	}
+}
+
 /** Pause and clear the active slot if it matches `el` (or always if no el). */
 export function releaseVideo(el?: HTMLVideoElement | null): void {
 	if (el) {
-		el.pause();
+		safePause(el);
 		if (current === el) current = null;
 		return;
 	}
 	if (current) {
-		current.pause();
+		safePause(current);
 		current = null;
 	}
 }
@@ -24,17 +35,35 @@ export function releaseVideo(el?: HTMLVideoElement | null): void {
  */
 export function claimAndPlay(el: HTMLVideoElement, resetToStart = false): void {
 	if (current && current !== el) {
-		current.pause();
+		safePause(current);
 	}
 	current = el;
+
 	if (resetToStart) {
-		try {
-			el.currentTime = 0;
-		} catch {
-			/* ignore if not seekable yet */
+		if (!el.paused && el.readyState >= 2) {
+			try {
+				el.currentTime = 0;
+			} catch {
+				/* ignore if not seekable yet */
+			}
 		}
 	}
-	void el.play().catch(() => {
-		/* autoplay can be blocked; muted + playsinline is usually enough */
-	});
+
+	if (el.readyState >= 2) {
+		el.play().catch(() => {
+			/* autoplay can be blocked; muted + playsinline is usually enough */
+		});
+	} else {
+		el.addEventListener(
+			"loadeddata",
+			() => {
+				if (current === el) {
+					el.play().catch(() => {
+						/* autoplay can be blocked */
+					});
+				}
+			},
+			{ once: true },
+		);
+	}
 }
