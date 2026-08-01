@@ -14,7 +14,11 @@ export const surfaceRatio = $state({
 });
 
 /** Tracks whether the user has manually clicked/tapped a tab in AppPreview. */
-export let userInteractedWithPreview = $state(false);
+let userInteractedWithPreview = $state(false);
+
+export function getUserInteractedWithPreview(): boolean {
+	return userInteractedWithPreview;
+}
 
 export function setUserInteractedWithPreview(val = true): void {
 	userInteractedWithPreview = val;
