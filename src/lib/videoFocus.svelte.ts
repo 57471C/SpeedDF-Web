@@ -21,10 +21,14 @@ export function setSurfaceRatio(surface: VideoSurface, ratio: number): void {
 export function isFocusedSurface(surface: VideoSurface): boolean {
 	const self = surfaceRatio[surface];
 	const other = surface === "hero" ? surfaceRatio.preview : surfaceRatio.hero;
-	const threshold = surface === "hero" ? 0.3 : 0.4;
-	if (self < threshold) return false;
-	// Strict greater-than loses ties to the other surface when ratios are equal —
-	// prefer preview on a tie so the interactive demo wins when both peek into view.
-	if (surface === "preview") return self >= other;
-	return self > other;
+	if (surface === "hero") {
+		// Hero stays focused as long as it has any visibility (> 0),
+		// unless preview is clearly visible and taking priority (other >= 0.4).
+		if (self === 0) return false;
+		if (other >= 0.4 && other > self) return false;
+		return true;
+	}
+	// Preview surface requires at least 30% visibility
+	if (self < 0.3) return false;
+	return self >= other;
 }

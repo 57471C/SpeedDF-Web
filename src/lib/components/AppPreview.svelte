@@ -9,7 +9,8 @@ interface Tab {
 	label: string;
 	title: string;
 	description: string;
-	videoSrc: string;
+	mp4Src: string;
+	webmSrc: string;
 	videoLabel: string;
 }
 
@@ -20,7 +21,8 @@ const tabs: Tab[] = [
 		title: "Opens before you finish clicking.",
 		description:
 			"Native Rust renderer, multi-tab workspace, and page thumbnails on the side. Scroll large docs without the usual thrash.",
-		videoSrc: "/assets/video/Fast-Loading.webm",
+		mp4Src: "/assets/video/fast-loading.mp4",
+		webmSrc: "/assets/video/fast-loading.webm",
 		videoLabel: "speedDF main document viewer opening and scrolling a PDF",
 	},
 	{
@@ -29,7 +31,8 @@ const tabs: Tab[] = [
 		title: "Marks that actually stick.",
 		description:
 			"Text, freehand, highlights, shapes, stamps, and signatures. Edits bake into the PDF tree on save, not a fragile overlay.",
-		videoSrc: "/assets/video/Annotations.webm",
+		mp4Src: "/assets/video/annotations.mp4",
+		webmSrc: "/assets/video/annotations.webm",
 		videoLabel: "speedDF annotation tools with freehand, shapes, signatures, and stamps",
 	},
 	{
@@ -38,7 +41,8 @@ const tabs: Tab[] = [
 		title: "Pages you can rearrange by hand.",
 		description:
 			"Rotate, reorder, delete, or insert pages in a visual grid. Merge another PDF when the pile gets out of order.",
-		videoSrc: "/assets/video/Grid-Mode.webm",
+		mp4Src: "/assets/video/grid-mode.mp4",
+		webmSrc: "/assets/video/grid-mode.webm",
 		videoLabel: "speedDF grid organizer with selected page and rotate controls",
 	},
 	{
@@ -47,7 +51,8 @@ const tabs: Tab[] = [
 		title: "Fill real form fields, signatures included.",
 		description:
 			"Type into fillable fields, check boxes, and drop signatures without printing and scanning. Local, instant, and saved into the PDF.",
-		videoSrc: "/assets/video/Forms.webm",
+		mp4Src: "/assets/video/forms.mp4",
+		webmSrc: "/assets/video/forms.webm",
 		videoLabel: "speedDF filling PDF form fields and adding signatures",
 	},
 ];
@@ -164,15 +169,17 @@ $effect(() => {
 				{#key active.id}
 					<video
 						bind:this={videoEl}
-						src={active.videoSrc}
 						muted
 						loop
 						playsinline
 						webkit-playsinline
-						preload="metadata"
+						preload="auto"
 						aria-label={active.videoLabel}
 						class="block h-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.015]"
-					></video>
+					>
+						<source src={active.mp4Src} type="video/mp4" />
+						<source src={active.webmSrc} type="video/webm" />
+					</video>
 				{/key}
 			</div>
 		</div>

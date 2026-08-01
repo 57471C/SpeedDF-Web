@@ -49,21 +49,29 @@ export function claimAndPlay(el: HTMLVideoElement, resetToStart = false): void {
 		}
 	}
 
-	if (el.readyState >= 2) {
-		el.play().catch(() => {
-			/* autoplay can be blocked; muted + playsinline is usually enough */
+	const tryPlay = () => {
+		if (current !== null && current !== el) return;
+		el.play().catch((err: unknown) => {
+			if (typeof console !== "undefined" && console.debug) {
+				console.debug("[speedDF video] play rejected:", err);
+			}
 		});
+	};
+
+	if (el.readyState >= 1) {
+		tryPlay();
 	} else {
-		el.addEventListener(
-			"loadeddata",
-			() => {
-				if (current === el) {
-					el.play().catch(() => {
-						/* autoplay can be blocked */
-					});
-				}
-			},
-			{ once: true },
-		);
+		const handleReady = () => {
+			tryPlay();
+		};
+		el.addEventListener("loadeddata", handleReady, { once: true });
+		el.addEventListener("canplay", handleReady, { once: true });
+
+		// Debug aid: warning if readyState is stuck at 0 after 2s
+		setTimeout(() => {
+			if (el.readyState === 0 && typeof console !== "undefined" && console.warn) {
+				console.warn("[speedDF video] readyState stuck at 0 after 2s:", el.currentSrc || el.src);
+			}
+		}, 2000);
 	}
 }

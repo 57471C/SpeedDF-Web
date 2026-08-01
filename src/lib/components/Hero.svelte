@@ -1,6 +1,6 @@
 <script lang="ts">
 import { claimAndPlay, releaseVideo } from "$lib/exclusiveVideo";
-import { isFocusedSurface, setSurfaceRatio } from "$lib/videoFocus.svelte";
+import { isFocusedSurface, setSurfaceRatio, surfaceRatio } from "$lib/videoFocus.svelte";
 import DownloadButton from "./DownloadButton.svelte";
 import LinuxDownloadButton from "./LinuxDownloadButton.svelte";
 
@@ -30,13 +30,32 @@ $effect(() => {
 			const ratio = entry.isIntersecting ? entry.intersectionRatio : 0;
 			setSurfaceRatio("hero", ratio);
 		},
-		{ threshold: [0, 0.25, 0.45, 0.5, 0.6, 0.75, 1] },
+		{ threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1] },
 	);
 	observer.observe(el);
 	return () => {
 		observer.disconnect();
 		setSurfaceRatio("hero", 0);
 	};
+});
+
+// Immediate load/play attempt on mount when visible
+$effect(() => {
+	const video = videoEl;
+	if (!video) return;
+
+	const attemptInitialPlay = () => {
+		if (video.paused && (shouldPlay || surfaceRatio.hero > 0)) {
+			claimAndPlay(video, false);
+		}
+	};
+
+	if (video.readyState >= 1) {
+		attemptInitialPlay();
+	} else {
+		video.addEventListener("loadeddata", attemptInitialPlay, { once: true });
+		video.addEventListener("canplay", attemptInitialPlay, { once: true });
+	}
 });
 
 $effect(() => {
@@ -117,7 +136,6 @@ $effect(() => {
 				<div class="relative overflow-hidden bg-background">
 					<video
 						bind:this={videoEl}
-						src="/assets/video/Light-Mode.webm"
 						muted
 						loop
 						playsinline
@@ -125,7 +143,10 @@ $effect(() => {
 						preload="auto"
 						aria-label="speedDF light-mode document view"
 						class="block h-auto w-full origin-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-					></video>
+					>
+						<source src="/assets/video/light-mode.mp4" type="video/mp4" />
+						<source src="/assets/video/light-mode.webm" type="video/webm" />
+					</video>
 				</div>
 			</div>
 		</div>
