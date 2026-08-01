@@ -39,6 +39,50 @@ $effect(() => {
 	};
 });
 
+// Direct iOS-critical initial play attempt on ready without waiting for exclusive lock
+$effect(() => {
+	const video = videoEl;
+	if (!video) return;
+
+	let retried = false;
+
+	const playDirectly = () => {
+		if (video.paused) {
+			void video
+				.play()
+				.then(() => {
+					claimAndPlay(video, false);
+				})
+				.catch(() => {
+					/* autoplay blocked or pending user interaction */
+				});
+		}
+	};
+
+	if (video.readyState >= 1) {
+		playDirectly();
+	} else {
+		video.addEventListener("loadeddata", playDirectly, { once: true });
+		video.addEventListener("canplay", playDirectly, { once: true });
+	}
+
+	const timer = setTimeout(() => {
+		if (video.readyState === 0 && !retried) {
+			retried = true;
+			try {
+				video.load();
+				playDirectly();
+			} catch {
+				/* ignore retry error */
+			}
+		}
+	}, 1000);
+
+	return () => {
+		clearTimeout(timer);
+	};
+});
+
 $effect(() => {
 	const video = videoEl;
 	const play = shouldPlay;

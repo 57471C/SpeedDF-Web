@@ -49,6 +49,9 @@ export function claimAndPlay(el: HTMLVideoElement, resetToStart = false): void {
 		}
 	}
 
+	// If already playing, lock ownership is recorded and no further play call is needed
+	if (!el.paused) return;
+
 	const tryPlay = () => {
 		if (current !== null && current !== el) return;
 		el.play().catch((err: unknown) => {
