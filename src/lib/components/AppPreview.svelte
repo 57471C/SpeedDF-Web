@@ -165,7 +165,6 @@ $effect(() => {
 					<video
 						bind:this={videoEl}
 						src={active.videoSrc}
-						poster="/og.png"
 						muted
 						loop
 						playsinline

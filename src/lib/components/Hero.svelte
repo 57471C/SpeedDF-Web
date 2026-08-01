@@ -118,7 +118,6 @@ $effect(() => {
 					<video
 						bind:this={videoEl}
 						src="/assets/video/Light-Mode.webm"
-						poster="/og.png"
 						muted
 						loop
 						playsinline
