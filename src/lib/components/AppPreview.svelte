@@ -1,6 +1,6 @@
 <script lang="ts">
 import { claimAndPlay, releaseVideo } from "$lib/exclusiveVideo";
-import { isFocusedSurface, setSurfaceRatio } from "$lib/videoFocus.svelte";
+import { isFocusedSurface, setSurfaceRatio, setUserInteractedWithPreview } from "$lib/videoFocus.svelte";
 
 type TabId = "view" | "markup" | "grid" | "forms";
 
@@ -65,6 +65,7 @@ const active = $derived(tabs.find((t) => t.id === activeTab) ?? tabs[0]);
 const shouldPlay = $derived(isFocusedSurface("preview"));
 
 function selectTab(id: TabId) {
+	setUserInteractedWithPreview(true);
 	if (id === activeTab) return;
 	if (videoEl) releaseVideo(videoEl);
 	activeTab = id;

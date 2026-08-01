@@ -13,22 +13,35 @@ export const surfaceRatio = $state({
 	preview: 0,
 });
 
+/** Tracks whether the user has manually clicked/tapped a tab in AppPreview. */
+export let userInteractedWithPreview = $state(false);
+
+export function setUserInteractedWithPreview(val = true): void {
+	userInteractedWithPreview = val;
+}
+
 export function setSurfaceRatio(surface: VideoSurface, ratio: number): void {
 	surfaceRatio[surface] = ratio;
 }
 
-/** True when this surface is the single winner (visible enough and more so than the other). */
+/** True when this surface is the single winner. */
 export function isFocusedSurface(surface: VideoSurface): boolean {
-	const self = surfaceRatio[surface];
-	const other = surface === "hero" ? surfaceRatio.preview : surfaceRatio.hero;
+	const heroRatio = surfaceRatio.hero;
+	const previewRatio = surfaceRatio.preview;
+
 	if (surface === "hero") {
-		// Hero stays focused as long as it has any visibility (> 0),
-		// unless preview is clearly visible and taking priority (other >= 0.4).
-		if (self === 0) return false;
-		if (other >= 0.4 && other > self) return false;
+		// Hero is inactive if completely scrolled out of view
+		if (heroRatio === 0) return false;
+		// If user manually tapped a tab and preview is more visible, preview takes precedence
+		if (userInteractedWithPreview && previewRatio > heroRatio) return false;
+		// Otherwise Hero owns focus while visible
 		return true;
 	}
-	// Preview surface requires at least 30% visibility
-	if (self < 0.3) return false;
-	return self >= other;
+
+	// Preview surface requires at least 20% visibility
+	if (previewRatio < 0.2) return false;
+	// AppPreview will NOT auto-play on initial load if Hero is in view unless user clicked a tab
+	if (heroRatio > 0 && !userInteractedWithPreview) return false;
+	// Otherwise preview plays if its ratio is >= hero's ratio
+	return previewRatio >= heroRatio;
 }

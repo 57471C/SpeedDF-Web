@@ -66,12 +66,17 @@ export function claimAndPlay(el: HTMLVideoElement, resetToStart = false): void {
 		};
 		el.addEventListener("loadeddata", handleReady, { once: true });
 		el.addEventListener("canplay", handleReady, { once: true });
-
-		// Debug aid: warning if readyState is stuck at 0 after 2s
-		setTimeout(() => {
-			if (el.readyState === 0 && typeof console !== "undefined" && console.warn) {
-				console.warn("[speedDF video] readyState stuck at 0 after 2s:", el.currentSrc || el.src);
-			}
-		}, 2000);
 	}
+
+	// Never leave a blank box: retry load + play once after 1s if readyState is still 0
+	setTimeout(() => {
+		if (current === el && el.readyState === 0) {
+			try {
+				el.load();
+				tryPlay();
+			} catch {
+				/* ignore retry errors */
+			}
+		}
+	}, 1000);
 }

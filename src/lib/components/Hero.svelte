@@ -1,6 +1,6 @@
 <script lang="ts">
 import { claimAndPlay, releaseVideo } from "$lib/exclusiveVideo";
-import { isFocusedSurface, setSurfaceRatio, surfaceRatio } from "$lib/videoFocus.svelte";
+import { isFocusedSurface, setSurfaceRatio } from "$lib/videoFocus.svelte";
 import DownloadButton from "./DownloadButton.svelte";
 import LinuxDownloadButton from "./LinuxDownloadButton.svelte";
 
@@ -37,25 +37,6 @@ $effect(() => {
 		observer.disconnect();
 		setSurfaceRatio("hero", 0);
 	};
-});
-
-// Immediate load/play attempt on mount when visible
-$effect(() => {
-	const video = videoEl;
-	if (!video) return;
-
-	const attemptInitialPlay = () => {
-		if (video.paused && (shouldPlay || surfaceRatio.hero > 0)) {
-			claimAndPlay(video, false);
-		}
-	};
-
-	if (video.readyState >= 1) {
-		attemptInitialPlay();
-	} else {
-		video.addEventListener("loadeddata", attemptInitialPlay, { once: true });
-		video.addEventListener("canplay", attemptInitialPlay, { once: true });
-	}
 });
 
 $effect(() => {
