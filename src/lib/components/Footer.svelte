@@ -27,7 +27,7 @@ const currentYear = new Date().getFullYear();
 			<button type="button" onclick={onOpenPrivacyModal} class="cursor-pointer transition-colors duration-150 hover:text-primary">Privacy</button>
 			<a class="transition-colors duration-150 hover:text-primary" href="https://github.com/57471C/speedDF">GitHub</a>
 			<a class="transition-colors duration-150 hover:text-primary" href="https://github.com/57471C/speedDF/releases">Releases</a>
-			<a class="transition-colors duration-150 hover:text-primary" href="https://buymeacoffee.com/speeddf" target="_blank" rel="noreferrer">Buy me a coffee</a>
+			<a class="transition-colors duration-150 hover:text-primary" href="https://buymeacoffee.com/lean.studio" target="_blank" rel="noreferrer">Buy me a coffee</a>
 		</nav>
 
 		<div class="flex flex-col items-start gap-2 md:items-end">

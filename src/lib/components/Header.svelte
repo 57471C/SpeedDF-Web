@@ -16,7 +16,7 @@ import LeanStudioCredit from "./LeanStudioCredit.svelte";
 
 		<div class="relative z-10 flex shrink-0 items-center gap-3">
 			<a
-				href="https://buymeacoffee.com/speeddf"
+				href="https://buymeacoffee.com/lean.studio"
 				target="_blank"
 				rel="noreferrer"
 				class="inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3.5 py-2 font-mono text-xs uppercase tracking-wider text-yellow-500 transition-all duration-150 hover:border-yellow-500/60 hover:bg-yellow-500/20 active:scale-[0.98]"
